@@ -53,7 +53,7 @@ class Enemy(GameSprite):
 
 class Wall(GameSprite):
     def __init__(self, x, y):
-        super().__init__("wall.png", 35, 35, x, y)
+        super().__init__("wall.jpg", 35, 35, x, y)
 
 bg = transform.scale(image.load("background.jpg"), (WIDTH, HEIGHT))
 player = Player('player.png', width=30, height=30, x = 40, y = 350)
