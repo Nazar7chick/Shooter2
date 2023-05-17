@@ -26,16 +26,31 @@ class GameSprite(sprite.Sprite):
         window.blit(self.image, self.rect) 
 
 class Player(GameSprite):
+    def __init__ (self, sprite_image, width, height, x, y):
+        super().__init__(sprite_image, width, height, x, y)
+        self.orig_image = self.image
+        self.up_image = transform.rotate(self.orig_image, 90)
+        self.left_image = transform.rotate(self.orig_image, -180)
+        self.down_image = transform.rotate(self.orig_image, -90)
+        self.dir = "right"
     def update(self):
         old_pos = self.rect.x, self.rect.y
         pressed = key.get_pressed()
         if pressed[K_UP] and self.rect.y > 0:
+            self.image = self.up_image
+            self.dir = "up"
             self.rect.y -= 3
         if pressed[K_DOWN] and self.rect.y < HEIGHT - 70:
+            self.image = self.down_image
+            self.dir = "down"
             self.rect.y += 3
         if pressed[K_LEFT] and self.rect.x > 0:
+            self.image = self.left_image
+            self.dir = "left"
             self.rect.x -= 3
         if pressed[K_RIGHT] and self.rect.y < WIDTH - 70:
+            self.image = self.orig_image
+            self.dir = "right"
             self.rect.x += 3
         for wall in walls:
             if sprite.collide_rect(self, wall):
@@ -50,6 +65,16 @@ class Enemy(GameSprite):
             if sprite.collide_rect(self, wall):
                 self.speed *= -1
         self.rect.x += self.speed
+
+class Bullet(GameSprite):
+    def __init__(self, x, y):
+        super().__init__("bullet.png", x, y, 10, 20)
+        self.speed = 4
+    def update(self):
+        """рух кулі"""
+        self.rect.y -= self.speed
+        if self.rect.y < -30:
+            self.kill()
 
 class Wall(GameSprite):
     def __init__(self, x, y):
