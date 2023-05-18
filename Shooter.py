@@ -33,6 +33,11 @@ class Player(GameSprite):
         self.left_image = transform.rotate(self.orig_image, -180)
         self.down_image = transform.rotate(self.orig_image, -90)
         self.dir = "right"
+
+    def fire(self):
+        new_bullet = Bullet(self.dir, self.rect.centerx, self.rect.centery)
+        bullets.add(new_bullet)
+
     def update(self):
         old_pos = self.rect.x, self.rect.y
         pressed = key.get_pressed()
@@ -62,19 +67,36 @@ class Enemy(GameSprite):
         self.speed = 3
     def update(self, walls):
         for w in walls:
-            if sprite.collide_rect(self, wall):
+            if sprite.collide_rect(self, w):
                 self.speed *= -1
         self.rect.x += self.speed
 
 class Bullet(GameSprite):
-    def __init__(self, x, y):
-        super().__init__("bullet.png", x, y, 10, 20)
+    def __init__(self, dir, x, y):
+        super().__init__("bullet.png", 5, 10, x, y)
         self.speed = 4
+        self.dir = dir
+        if self.dir == "left":
+            self.image = transform.rotate(self.image, 90)
+        elif self.dir == "right":
+            self.image = transform.rotate(self.image, -90)
+        elif self.dir == "down":
+            self.image = transform.rotate(self.image, 180)
+
     def update(self):
         """рух кулі"""
-        self.rect.y -= self.speed
-        if self.rect.y < -30:
-            self.kill()
+        if self.dir == "left":
+            self.rect.x -= self.speed
+        elif self.dir == "right":
+            self.rect.x += self.speed
+        elif self.dir == "down":
+            self.rect.y += self.speed
+        else:
+            self.rect.y -= self.speed
+
+        for wall in walls:
+            if sprite.collide_rect(self, wall):
+                self.kill()    
 
 class Wall(GameSprite):
     def __init__(self, x, y):
@@ -91,6 +113,7 @@ class Coin(GameSprite):
 walls = []
 enemys = []
 coins = []
+bullets = sprite.Group()
 
 with open('map.txt', 'r') as file:
     map = file.readlines()
@@ -127,6 +150,9 @@ while run:
     for e in event.get():
         if e.type == QUIT:
             run = False
+        if e.type == KEYDOWN:
+            if e.key == K_SPACE:
+                player.fire()
 
     if not finish:
         player.update()
@@ -139,6 +165,8 @@ while run:
                kick.play()
 
         player.draw()
+        bullets.draw(window)
+        bullets.update()
         gold.draw()
         if sprite.collide_rect(gold, player):
             finish = True
@@ -150,6 +178,8 @@ while run:
             if sprite.collide_rect(e, player):
                finish = True 
                kick.play()
+            if sprite.spritecollide(e, bullets, True):
+                enemys.remove(e)
         for c in coins:
             c.draw()
             if sprite.collide_rect(c, player):
